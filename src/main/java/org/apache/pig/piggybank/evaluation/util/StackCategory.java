@@ -17,18 +17,16 @@
  */
 package org.apache.pig.piggybank.evaluation.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.pig.EvalFunc;
-
-import org.apache.pig.data.DataBag;
 import org.apache.pig.data.DataType;
 import org.apache.pig.data.DefaultDataBag;
 import org.apache.pig.data.Tuple;
@@ -75,7 +73,7 @@ public class StackCategory extends EvalFunc<String> {
 			Iterator<Tuple> itr = db.iterator();
 			// loop through array of stack frames that make up a stack trace
 			while (itr.hasNext()) {
-				Tuple t3 = (Tuple) itr.next();
+				Tuple t3 = itr.next();
 				val = (String) t3.get(0);
 			}
 		} catch (Exception e) {
@@ -85,7 +83,11 @@ public class StackCategory extends EvalFunc<String> {
 		if (null == val) 
 			return val;
 
+		LOG.debug(val);
+		StackFrame frame = new StackFrame(val);
+		return frame.getCategory();
 
+		/*
 		LOG.debug(val);
 		if (val.indexOf("java.io") >= 0 || val.indexOf("java.net") >= 0
 				|| val.indexOf("java.nio") >= 0)
@@ -108,6 +110,7 @@ public class StackCategory extends EvalFunc<String> {
 		// Tuple tp2 = TupleFactory.getInstance().newTuple(1);
 		// tp2.set(0, category.toString());
 		return category.toString();
+		*/
 	}
 
 	String mExpression = null;
