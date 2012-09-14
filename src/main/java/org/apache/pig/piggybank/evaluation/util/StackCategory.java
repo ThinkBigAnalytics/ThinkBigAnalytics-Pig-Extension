@@ -45,11 +45,6 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 public class StackCategory extends EvalFunc<String> {
 
 	private static final Log LOG = LogFactory.getLog(StackCategory.class);
-	private static TupleFactory tupleFactory = TupleFactory.getInstance();
-
-	enum Category {
-		gc, io, hadoop, profiler, parser, user, pig, hive, unknown
-	};
 
 	@Override
 	public String exec(Tuple t) throws IOException {
@@ -62,55 +57,22 @@ public class StackCategory extends EvalFunc<String> {
 			return null;
 		LOG.debug(t.toDelimitedString(","));
 
-
-		Category category = Category.unknown;
-		String val = category.toString();
+		List<String> frames = new ArrayList<String>();
 		try {
 			// unpack arguments
-			List<Object> list = t.getAll();
-			DefaultDataBag db = (DefaultDataBag) list.get(0);
+			DefaultDataBag db = (DefaultDataBag) t.get(0);
 
-			Iterator<Tuple> itr = db.iterator();
 			// loop through array of stack frames that make up a stack trace
-			while (itr.hasNext()) {
-				Tuple t3 = itr.next();
-				val = (String) t3.get(0);
+			for (Tuple tuple : db) {
+				frames.add((String)tuple.get(0));
 			}
 		} catch (Exception e) {
 			LOG.error(e.getMessage());
-			return val;
+			return null;
 		}
-		if (null == val) 
-			return val;
 
-		LOG.debug(val);
-		StackFrame frame = new StackFrame(val);
-		return frame.getCategory();
-
-		/*
-		LOG.debug(val);
-		if (val.indexOf("java.io") >= 0 || val.indexOf("java.net") >= 0
-				|| val.indexOf("java.nio") >= 0)
-			category = Category.io;
-		else if (val.indexOf("com.sun.org.apache.xerces") >= 0
-				|| val.indexOf("java.net.URI$Parser") > 0
-				|| val.indexOf("com.sun.org.apache.xml.internal.serializer") >= 0)
-			category = Category.parser;
-		else if (val.indexOf("java.lang.ref.Finalizer") >= 0)
-			category = Category.gc;
-		else if (val.indexOf("org.apache.hadoop") >= 0)
-			category = Category.hadoop;
-		else if (val.indexOf("thinkbig.profiler") >= 0)
-			category = Category.profiler;
-		else if (val.indexOf("pig") >= 0)
-			category = Category.pig;
-		else if (val.indexOf("com.") == 0)
-			category = Category.user;
-
-		// Tuple tp2 = TupleFactory.getInstance().newTuple(1);
-		// tp2.set(0, category.toString());
-		return category.toString();
-		*/
+		StackTrace stack = new StackTrace(frames);
+		return stack.getCategory();
 	}
 
 	String mExpression = null;
